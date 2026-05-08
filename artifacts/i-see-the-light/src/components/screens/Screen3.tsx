@@ -14,16 +14,14 @@ export interface Screen3Props {
   onClosingLineSaved?: (line: string) => void;
 }
 
-// Module-level star data — generated ONCE when the module loads.
-// This ensures stars never re-randomize on React re-renders or typing.
+// Module-level star data — generated ONCE at module load.
+// Stars never re-randomize on re-renders or typing — ONLY the sine wave drives opacity.
 const STARS = Array.from({ length: 55 }, () => ({
   xFrac: Math.random(),
   yFrac: Math.random() * 0.56,
   size: Math.random() * 1.1 + 0.2,
-  phase: Math.random() * Math.PI * 2,
-  freq: 0.008 + Math.random() * 0.007, // rad/frame → ~6–13s full cycle at 60fps (very slow)
-  base: 0.12 + Math.random() * 0.18,
-  amp: 0.07 + Math.random() * 0.13,
+  phase: Math.random() * Math.PI * 2,   // unique starting phase per star
+  speed: 0.004 + Math.random() * 0.006, // 4–8s cycle at 60fps
 }));
 
 type ReleaseState = {
@@ -219,12 +217,13 @@ export default function Screen3({
         ctx.fill();
       }
 
-      // --- Stars (slow, stable, never flash) ---
+      // --- Stars — slow sine-wave pulse, never static, never react to input ---
       for (const s of STARS) {
-        const alpha = Math.max(0, s.base + s.amp * Math.sin(frame * s.freq + s.phase));
+        s.phase += s.speed;
+        const alpha = 0.325 + 0.125 * Math.sin(s.phase); // 0.20–0.45, never invisible
         ctx.beginPath();
         ctx.arc(s.xFrac * w, s.yFrac * h, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(220,220,255,${alpha})`;
+        ctx.fillStyle = `rgba(220, 215, 200, ${alpha})`;
         ctx.fill();
       }
 
@@ -364,6 +363,8 @@ export default function Screen3({
     const handleResize = () => {
       w = canvas.width = window.innerWidth;
       h = canvas.height = window.innerHeight;
+      ctx.fillStyle = "#0d1220";
+      ctx.fillRect(0, 0, w, h);
     };
     window.addEventListener("resize", handleResize);
     return () => {
@@ -377,24 +378,33 @@ export default function Screen3({
   return (
     <div className="w-full h-full relative overflow-hidden">
       {/* Full-screen canvas — pointer-events-none so UI receives clicks */}
-      <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
+      <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />
 
-      {/* PRE-RELEASE writing UI */}
+      {/* PRE-RELEASE writing UI — distributed evenly across full screen height */}
       {(phase === "writing" || phase === "releasing") && (
         <div
-          className="absolute inset-0 z-10 flex flex-col items-center pt-16 px-6 pb-28 overflow-y-auto transition-opacity duration-[1500ms]"
-          style={{ opacity: phase === "releasing" ? 0 : 1, pointerEvents: phase === "releasing" ? "none" : "auto" }}
+          className="absolute inset-0 z-10 flex flex-col items-center transition-opacity duration-[1500ms]"
+          style={{
+            opacity: phase === "releasing" ? 0 : 1,
+            pointerEvents: phase === "releasing" ? "none" : "auto",
+            justifyContent: "space-evenly",
+            paddingTop: "calc(env(safe-area-inset-top) + 20px)",
+            paddingBottom: "calc(env(safe-area-inset-bottom) + 28px)",
+            paddingLeft: "24px",
+            paddingRight: "24px",
+            boxSizing: "border-box",
+          }}
         >
-          <div className="w-full max-w-md flex flex-col items-center gap-5">
-            {/* AI poetic header */}
-            <h2
-              className="font-serif italic text-xl text-[#D7A54B] text-center mb-3 fade-up delay-100"
-              style={{ textShadow: "0 0 20px rgba(215,165,75,0.22)" }}
-            >
-              {header}
-            </h2>
+          {/* AI poetic header */}
+          <h2
+            className="font-serif italic text-xl text-[#D7A54B] text-center fade-up delay-100"
+            style={{ textShadow: "0 0 20px rgba(215,165,75,0.22)", maxWidth: "360px" }}
+          >
+            {header}
+          </h2>
 
-            {/* Writing cards — no placeholders, Nunito input */}
+          {/* Writing cards */}
+          <div className="w-full max-w-md flex flex-col gap-4">
             {gratitudes.map((g, i) => (
               <div
                 key={i}
@@ -414,8 +424,9 @@ export default function Screen3({
                     setGratitudes(next);
                   }}
                   data-testid={`input-gratitude-${i}`}
-                  className="w-full bg-transparent border-none outline-none resize-none p-5 min-h-[88px]"
+                  className="w-full bg-transparent border-none outline-none resize-none p-5"
                   style={{
+                    minHeight: "80px",
                     color: "rgba(240,220,185,0.88)",
                     caretColor: "#D7A54B",
                     fontSize: "16px",
@@ -426,25 +437,25 @@ export default function Screen3({
                 />
               </div>
             ))}
-
-            {/* Release button */}
-            <button
-              onClick={handleRelease}
-              disabled={!hasInput}
-              data-testid="button-release"
-              className="mt-6 px-8 py-3 rounded-full font-serif italic text-lg transition-all duration-500 fade-up"
-              style={{
-                animationDelay: "500ms",
-                color: hasInput ? "#D7A54B" : "rgba(215,165,75,0.22)",
-                background: hasInput ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)",
-                backdropFilter: "blur(12px)",
-                border: `1px solid rgba(215,165,75,${hasInput ? "0.24" : "0.07"})`,
-                cursor: hasInput ? "pointer" : "not-allowed",
-              }}
-            >
-              Release to the Sky
-            </button>
           </div>
+
+          {/* Release button — sits in lower portion naturally via space-evenly */}
+          <button
+            onClick={handleRelease}
+            disabled={!hasInput}
+            data-testid="button-release"
+            className="px-8 py-3 rounded-full font-serif italic text-lg transition-all duration-500 fade-up"
+            style={{
+              animationDelay: "500ms",
+              color: hasInput ? "#D7A54B" : "rgba(215,165,75,0.22)",
+              background: hasInput ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)",
+              backdropFilter: "blur(12px)",
+              border: `1px solid rgba(215,165,75,${hasInput ? "0.24" : "0.07"})`,
+              cursor: hasInput ? "pointer" : "not-allowed",
+            }}
+          >
+            Release to the Sky
+          </button>
         </div>
       )}
 

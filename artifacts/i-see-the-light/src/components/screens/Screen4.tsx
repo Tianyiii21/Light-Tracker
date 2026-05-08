@@ -24,10 +24,8 @@ const SKY_STARS = Array.from({ length: 130 }, () => ({
   xFrac: Math.random(),
   yFrac: Math.random() * 0.84,
   size: Math.random() * 1.2 + 0.15,
-  phase: Math.random() * Math.PI * 2,
-  freq: 0.008 + Math.random() * 0.007,
-  base: 0.12 + Math.random() * 0.2,
-  amp: 0.07 + Math.random() * 0.14,
+  phase: Math.random() * Math.PI * 2,   // unique starting phase per star
+  speed: 0.004 + Math.random() * 0.006, // 4–8s cycle at 60fps
 }));
 
 export default function Screen4({ onBack }: Screen4Props) {
@@ -138,12 +136,13 @@ export default function Screen4({ onBack }: Screen4Props) {
       ctx.fillStyle = waterGrad;
       ctx.fillRect(0, horizonY, w, h - horizonY);
 
-      // Stars — slow, stable, never flash
+      // Stars — slow sine-wave pulse, never static, never react to input
       for (const s of SKY_STARS) {
-        const alpha = Math.max(0, s.base + s.amp * Math.sin(frame * s.freq + s.phase));
+        s.phase += s.speed;
+        const alpha = 0.325 + 0.125 * Math.sin(s.phase); // 0.20–0.45, never invisible
         ctx.beginPath();
         ctx.arc(s.xFrac * w, s.yFrac * h, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(220,220,255,${alpha})`;
+        ctx.fillStyle = `rgba(220, 215, 200, ${alpha})`;
         ctx.fill();
       }
 
@@ -187,6 +186,8 @@ export default function Screen4({ onBack }: Screen4Props) {
     const handleResize = () => {
       w = canvas.width = window.innerWidth;
       h = canvas.height = window.innerHeight;
+      ctx.fillStyle = "#04060c";
+      ctx.fillRect(0, 0, w, h);
     };
     window.addEventListener("resize", handleResize);
     return () => {
@@ -204,7 +205,7 @@ export default function Screen4({ onBack }: Screen4Props) {
       {/* Full-canvas night sky */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 z-0"
+        className="fixed inset-0 z-0"
         onClick={handleCanvasClick}
         style={{ cursor: entries.length > 0 ? "pointer" : "default" }}
       />

@@ -39,14 +39,17 @@
 }
 
 /* Ensure no flash of white/black before React renders */
-html {
-  background-color: #0d1220;
+html, body {
+  height: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  background: #0d1220;
+  overflow: hidden;
 }
 
 body {
-  @apply font-sans antialiased text-foreground overflow-hidden overscroll-none;
-  background-color: #0d1220;
-  /* Safe area padding handled by the app container, not body, to avoid double-applying */
+  @apply font-sans antialiased text-foreground overscroll-none;
 }
 
 .glass-panel {

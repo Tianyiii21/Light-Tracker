@@ -185,7 +185,7 @@ export default function Screen1({ onNext }: Screen1Props) {
 
   return (
     <div className="relative w-full h-full">
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      <canvas ref={canvasRef} className="fixed inset-0 w-full h-full" />
 
       {/* Title */}
       <div className="absolute inset-0 flex flex-col items-center pt-[env(safe-area-inset-top)] z-10 pointer-events-none">

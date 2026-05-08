@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { JournalEntry, loadEntries } from "../../lib/store";
 import { drawLantern } from "../../lib/lantern";
 import { format } from "date-fns";
+import { createStars, resizeStars, drawStar } from "../../lib/stars";
 
 interface Screen4Props {
   onBack: () => void;
@@ -20,13 +21,7 @@ interface LanternData extends JournalEntry {
 }
 
 // Module-level stable star data for Memory Sky — never recalculated
-const SKY_STARS = Array.from({ length: 130 }, () => ({
-  xFrac: Math.random(),
-  yFrac: Math.random() * 0.84,
-  size: Math.random() * 1.2 + 0.15,
-  phase: Math.random() * Math.PI * 2,   // unique starting phase per star
-  speed: 0.004 + Math.random() * 0.006, // 4–8s cycle at 60fps
-}));
+const SKY_STARS = createStars(80, 0.78);
 
 export default function Screen4({ onBack }: Screen4Props) {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -101,8 +96,14 @@ export default function Screen4({ onBack }: Screen4Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let w = (canvas.width = window.innerWidth);
-    let h = (canvas.height = window.innerHeight);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(window.innerWidth * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    ctx.scale(dpr, dpr);
+    let w = window.innerWidth;
+    let h = window.innerHeight;
     let frame = 0;
 
     const render = () => {
@@ -136,14 +137,9 @@ export default function Screen4({ onBack }: Screen4Props) {
       ctx.fillStyle = waterGrad;
       ctx.fillRect(0, horizonY, w, h - horizonY);
 
-      // Stars — slow sine-wave pulse, never static, never react to input
+      // Stars — three-style twinkling, glow halos at peak, position shimmer
       for (const s of SKY_STARS) {
-        s.phase += s.speed;
-        const alpha = 0.325 + 0.125 * Math.sin(s.phase); // 0.20–0.45, never invisible
-        ctx.beginPath();
-        ctx.arc(s.xFrac * w, s.yFrac * h, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(220, 215, 200, ${alpha})`;
-        ctx.fill();
+        drawStar(ctx, s);
       }
 
       // Lanterns drift with individual sine-wave phases
@@ -184,8 +180,15 @@ export default function Screen4({ onBack }: Screen4Props) {
     render();
 
     const handleResize = () => {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
+      const r = window.devicePixelRatio || 1;
+      canvas.width = Math.round(window.innerWidth * r);
+      canvas.height = Math.round(window.innerHeight * r);
+      canvas.style.width = "100vw";
+      canvas.style.height = "100vh";
+      ctx.scale(r, r);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      resizeStars(SKY_STARS, w, h);
       ctx.fillStyle = "#04060c";
       ctx.fillRect(0, 0, w, h);
     };

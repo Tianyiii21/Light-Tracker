@@ -36,8 +36,14 @@ export default function Screen1({ onNext }: Screen1Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let w = (canvas.width = window.innerWidth);
-    let h = (canvas.height = window.innerHeight);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(window.innerWidth * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    ctx.scale(dpr, dpr);
+    let w = window.innerWidth;
+    let h = window.innerHeight;
 
     const PHASE_DURATION = 4500; // ms
 
@@ -166,9 +172,14 @@ export default function Screen1({ onNext }: Screen1Props) {
     render();
 
     const handleResize = () => {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-      // Immediately fill with base color to prevent flash on resize
+      const r = window.devicePixelRatio || 1;
+      canvas.width = Math.round(window.innerWidth * r);
+      canvas.height = Math.round(window.innerHeight * r);
+      canvas.style.width = "100vw";
+      canvas.style.height = "100vh";
+      ctx.scale(r, r);
+      w = window.innerWidth;
+      h = window.innerHeight;
       ctx.fillStyle = "#0d1220";
       ctx.fillRect(0, 0, w, h);
     };

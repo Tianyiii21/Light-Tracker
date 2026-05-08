@@ -1,0 +1,219 @@
+# I See the Light — Prompt Addendum (v7 changes)
+
+Apply these two fixes to the existing code. Do not rebuild from scratch.
+
+---
+
+## FIX 1 — BOTTOM BLACK SPACE (CANVAS NOT FILLING FULL SCREEN)
+
+The black space at the bottom is caused by the canvas not truly covering
+the full physical screen height. Apply ALL of the following together —
+every layer must be addressed or the black space will persist.
+
+### CSS (apply to every canvas element in the app):
+
+```css
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
+}
+```
+
+Both `vh/vw` and `dvh/dvw` are listed — `dvh` overrides on browsers that
+support it (handles iOS Safari bottom bar correctly), `vh` is the fallback.
+
+### Also add to CSS:
+
+```css
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+  background: #0d1220;
+}
+```
+
+`-webkit-fill-available` is the iOS Safari specific fix that makes the
+body truly fill the complete screen including bottom safe area.
+
+### JavaScript — canvas sizing:
+
+Replace any existing canvas resize logic with:
+
+```javascript
+function resizeCanvas(canvas) {
+  canvas.width = Math.round(window.innerWidth * window.devicePixelRatio);
+  canvas.height = Math.round(window.innerHeight * window.devicePixelRatio);
+  canvas.style.width = '100vw';
+  canvas.style.height = '100vh';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+```
+
+Using `devicePixelRatio` ensures the canvas is sharp on retina screens
+and sized to the true physical pixel count, not the CSS pixel count.
+
+### JavaScript — background gradient must reach the bottom:
+
+In every canvas draw function, the background gradient must always go
+from `y = 0` to `y = window.innerHeight` — never use a fixed pixel value
+or a fraction like `canvas.height * 0.9`. Example:
+
+```javascript
+const gradient = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
+gradient.addColorStop(0, '#0d1220');
+gradient.addColorStop(0.5, '#1a2535');
+gradient.addColorStop(0.75, '#1e3040');
+gradient.addColorStop(1, '#0d1220');  // return to dark at very bottom
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+```
+
+The bottom of the gradient must be dark (`#0d1220`) so even if there is
+a tiny gap, it blends invisibly into the background color.
+
+### On resize:
+
+```javascript
+window.addEventListener('resize', () => {
+  // resize all canvases
+  resizeCanvas(canvas);
+  // immediately redraw background — no flash
+  drawBackground();
+});
+```
+
+---
+
+## FIX 2 — STAR TWINKLING (replace all existing star behaviour)
+
+Stars must twinkle like a real night sky — sharp brightness spikes with
+asymmetric fading, subtle position shimmer, and varied timing per star.
+Replace the existing star implementation entirely with the following.
+
+### Star object structure:
+
+```javascript
+function createStar(canvasWidth, canvasHeight) {
+  return {
+    x: Math.random() * canvasWidth,
+    y: Math.random() * canvasHeight * 0.75, // stars only in upper 75%
+    baseX: 0,      // set after creation: baseX = x
+    baseY: 0,      // set after creation: baseY = y
+    radius: 0.4 + Math.random() * 1.2,
+    // Twinkling properties
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.018 + Math.random() * 0.035,  // varied: some fast, some slow
+    peakOpacity: 0.5 + Math.random() * 0.5, // varied: some brighter than others
+    dimOpacity: 0.05 + Math.random() * 0.1, // very dim at minimum
+    // Position shimmer
+    shimmerRadius: Math.random() < 0.4 ? 1.2 + Math.random() * 0.8 : 0,
+    // ^ only 40% of stars shimmer position — rest are fixed
+    shimmerPhase: Math.random() * Math.PI * 2,
+    shimmerSpeed: 0.025 + Math.random() * 0.02,
+    // Twinkle style: 0 = rare slow blinker, 1 = medium, 2 = frequent sharp
+    style: Math.floor(Math.random() * 3)
+  };
+}
+// After creation: star.baseX = star.x; star.baseY = star.y;
+```
+
+### Star draw function (call every animation frame):
+
+```javascript
+function drawStar(ctx, star) {
+  star.phase += star.speed;
+  star.shimmerPhase += star.shimmerSpeed;
+
+  // Asymmetric twinkling: quick bright spike, slow fade back to dim
+  // Use a modified sine that spends more time dim than bright
+  const raw = Math.sin(star.phase);
+  const shaped = Math.pow(Math.max(raw, 0), 0.4); // sharp peak, slow return
+  // shaped ranges 0 to 1, spending most time near 0 (dim)
+
+  const opacity = star.dimOpacity + (star.peakOpacity - star.dimOpacity) * shaped;
+
+  // Apply style variations
+  let finalOpacity = opacity;
+  if (star.style === 0) {
+    // Rare slow blinker — only lights up occasionally
+    finalOpacity = opacity * (0.3 + 0.7 * Math.max(Math.sin(star.phase * 0.3), 0));
+  } else if (star.style === 2) {
+    // Frequent sharp twinkler — add a secondary fast flicker
+    const flicker = 0.85 + 0.15 * Math.sin(star.phase * 3.7);
+    finalOpacity = opacity * flicker;
+  }
+
+  // Position shimmer (only for stars with shimmerRadius > 0)
+  let drawX = star.baseX;
+  let drawY = star.baseY;
+  if (star.shimmerRadius > 0) {
+    drawX += Math.sin(star.shimmerPhase) * star.shimmerRadius;
+    drawY += Math.cos(star.shimmerPhase * 0.7) * star.shimmerRadius * 0.5;
+  }
+
+  // Draw the star with a soft glow for bright moments
+  if (finalOpacity > 0.4) {
+    // Add a small glow halo when star is near peak brightness
+    const glowSize = star.radius * (1 + 2 * (finalOpacity - 0.4));
+    const glowGrad = ctx.createRadialGradient(
+      drawX, drawY, 0,
+      drawX, drawY, glowSize * 2
+    );
+    glowGrad.addColorStop(0, `rgba(255, 245, 220, ${finalOpacity * 0.6})`);
+    glowGrad.addColorStop(1, `rgba(255, 245, 220, 0)`);
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath();
+    ctx.arc(drawX, drawY, glowSize * 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Draw the star core
+  ctx.beginPath();
+  ctx.arc(drawX, drawY, star.radius, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(240, 235, 215, ${finalOpacity})`;
+  ctx.fill();
+}
+```
+
+### Star population:
+
+Create 55–70 stars total on Screens 3 and 4.
+Distribute them across the upper 75% of the canvas only — stars should
+not appear in the ocean/horizon area at the bottom.
+
+Vary the population:
+- ~50% style 1 (medium, standard twinklers)
+- ~25% style 0 (rare slow blinkers, very dim most of the time)
+- ~25% style 2 (frequent sharp twinklers, the most visually active)
+
+This mix creates a naturalistic night sky where most stars are quietly
+present, a few are nearly invisible, and a handful catch your eye with
+sharper activity.
+
+### Rules:
+- Stars must NEVER be fully invisible (opacity always above dimOpacity)
+- Stars must NEVER be uniform — every star must feel individual
+- Stars must NEVER react to user input of any kind
+- Position shimmer must be tiny (1–2px maximum drift) — suggests
+  atmospheric scintillation, never looks like movement
+- The overall effect: a real clear night sky that rewards looking at it
+
+---
+
+## SUMMARY
+
+1. Bottom black space fixed via `-webkit-fill-available`, `100dvh`,
+   `devicePixelRatio` canvas sizing, and gradient reaching true bottom
+2. Stars completely replaced with three-style twinkling system:
+   asymmetric bright spike / slow fade, subtle position shimmer on 40%
+   of stars, three personality types (rare/medium/sharp), glow halo
+   at peak brightness — feels like a real night sky

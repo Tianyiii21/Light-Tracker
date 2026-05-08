@@ -38,18 +38,22 @@
   --radius: 1rem;
 }
 
-/* Ensure no flash of white/black before React renders */
-html, body {
+/* Ensure no flash of white/black before React renders.
+   -webkit-fill-available is the iOS Safari specific fix for true full-screen coverage. */
+html {
   height: 100%;
-  min-height: 100dvh;
-  margin: 0;
-  padding: 0;
+  height: -webkit-fill-available;
   background: #0d1220;
-  overflow: hidden;
 }
 
 body {
   @apply font-sans antialiased text-foreground overscroll-none;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  margin: 0;
+  padding: 0;
+  background: #0d1220;
+  overflow: hidden;
 }
 
 .glass-panel {

@@ -3,6 +3,7 @@ import { useGeneratePoetry } from "@workspace/api-client-react";
 import { Mood, getMoodColor, saveEntry } from "../../lib/store";
 import { drawLantern } from "../../lib/lantern";
 import { audioEngine } from "../../lib/audio";
+import { createStars, resizeStars, drawStar } from "../../lib/stars";
 
 type Phase = "writing" | "releasing" | "settled" | "linkVisible";
 
@@ -14,15 +15,9 @@ export interface Screen3Props {
   onClosingLineSaved?: (line: string) => void;
 }
 
-// Module-level star data — generated ONCE at module load.
-// Stars never re-randomize on re-renders or typing — ONLY the sine wave drives opacity.
-const STARS = Array.from({ length: 55 }, () => ({
-  xFrac: Math.random(),
-  yFrac: Math.random() * 0.56,
-  size: Math.random() * 1.1 + 0.2,
-  phase: Math.random() * Math.PI * 2,   // unique starting phase per star
-  speed: 0.004 + Math.random() * 0.006, // 4–8s cycle at 60fps
-}));
+// Module-level star data — created ONCE at import time, mutated only by the animation loop.
+// Stars NEVER react to user input — phase/shimmer driven solely by the canvas loop.
+const STARS = createStars(60, 0.60);
 
 type ReleaseState = {
   subPhase: "gathering" | "rising" | "settling";
@@ -173,8 +168,14 @@ export default function Screen3({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let w = (canvas.width = window.innerWidth);
-    let h = (canvas.height = window.innerHeight);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(window.innerWidth * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    ctx.scale(dpr, dpr);
+    let w = window.innerWidth;
+    let h = window.innerHeight;
     let frame = 0;
 
     const moodColor = getMoodColor(selectedMood);
@@ -217,14 +218,9 @@ export default function Screen3({
         ctx.fill();
       }
 
-      // --- Stars — slow sine-wave pulse, never static, never react to input ---
+      // --- Stars — three-style twinkling, glow halos at peak, position shimmer ---
       for (const s of STARS) {
-        s.phase += s.speed;
-        const alpha = 0.325 + 0.125 * Math.sin(s.phase); // 0.20–0.45, never invisible
-        ctx.beginPath();
-        ctx.arc(s.xFrac * w, s.yFrac * h, s.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(220, 215, 200, ${alpha})`;
-        ctx.fill();
+        drawStar(ctx, s);
       }
 
       // --- Release animation ---
@@ -361,8 +357,15 @@ export default function Screen3({
     render();
 
     const handleResize = () => {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
+      const r = window.devicePixelRatio || 1;
+      canvas.width = Math.round(window.innerWidth * r);
+      canvas.height = Math.round(window.innerHeight * r);
+      canvas.style.width = "100vw";
+      canvas.style.height = "100vh";
+      ctx.scale(r, r);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      resizeStars(STARS, w, h);
       ctx.fillStyle = "#0d1220";
       ctx.fillRect(0, 0, w, h);
     };

@@ -38,11 +38,15 @@
   --radius: 1rem;
 }
 
+/* Ensure no flash of white/black before React renders */
+html {
+  background-color: #0d1220;
+}
+
 body {
   @apply font-sans antialiased text-foreground overflow-hidden overscroll-none;
   background-color: #0d1220;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  /* Safe area padding handled by the app container, not body, to avoid double-applying */
 }
 
 .glass-panel {

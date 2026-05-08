@@ -168,6 +168,9 @@ export default function Screen1({ onNext }: Screen1Props) {
     const handleResize = () => {
       w = canvas.width = window.innerWidth;
       h = canvas.height = window.innerHeight;
+      // Immediately fill with base color to prevent flash on resize
+      ctx.fillStyle = "#0d1220";
+      ctx.fillRect(0, 0, w, h);
     };
     window.addEventListener("resize", handleResize);
 
@@ -187,12 +190,28 @@ export default function Screen1({ onNext }: Screen1Props) {
       {/* Title */}
       <div className="absolute inset-0 flex flex-col items-center pt-[env(safe-area-inset-top)] z-10 pointer-events-none">
         <div className="mt-12 text-center px-6">
-          <h1
-            className="font-serif text-4xl text-[#D7A54B] leading-snug"
-            style={{ textShadow: "0 0 30px rgba(215,165,75,0.35), 0 0 60px rgba(215,165,75,0.15)" }}
-          >
-            The tide is here. So are you.
-          </h1>
+          <div className="flex flex-col items-center gap-1">
+            <span
+              className="font-serif text-[#D7A54B] whitespace-nowrap"
+              style={{
+                fontSize: "clamp(1.45rem, 6.5vw, 1.75rem)",
+                textShadow: "0 0 30px rgba(215,165,75,0.35), 0 0 60px rgba(215,165,75,0.15)",
+                lineHeight: 1.25,
+              }}
+            >
+              The tide is here.
+            </span>
+            <span
+              className="font-serif text-[#D7A54B]/75 whitespace-nowrap"
+              style={{
+                fontSize: "clamp(1.2rem, 5.2vw, 1.45rem)",
+                textShadow: "0 0 24px rgba(215,165,75,0.25), 0 0 48px rgba(215,165,75,0.1)",
+                lineHeight: 1.25,
+              }}
+            >
+              So are you.
+            </span>
+          </div>
           <p className="font-sans font-light text-lg text-[#D7A54B]/60 mt-3 tracking-wide">
             Breathe with the waves.
           </p>

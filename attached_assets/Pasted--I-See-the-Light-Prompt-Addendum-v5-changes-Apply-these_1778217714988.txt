@@ -1,0 +1,130 @@
+# I See the Light — Prompt Addendum (v5 changes)
+
+Apply these changes on top of the v3 prompt and v4 addendum.
+They override relevant sections where there is any conflict.
+
+---
+
+## CHANGE 1 — BREATHING PAGE TITLE TEXT
+
+The main text on Screen 1 must NEVER break mid-phrase due to screen width.
+
+Replace the single sentence "The tide is here. So are you." with two
+explicitly separate lines:
+
+Line 1: "The tide is here."
+Line 2: "So are you."
+
+Each line should be its own HTML element (e.g. two separate spans or
+paragraph elements, not one continuous string).
+
+Styling:
+- Both lines: Cormorant Garamond, warm gold, subtle glow
+- Line 1: slightly larger (e.g. 26–28px)
+- Line 2: slightly smaller and softer (e.g. 22–24px), as if a quiet reply
+- Centered, with a small gap between the two lines
+- Neither line should ever wrap — if needed, reduce font size slightly to
+  ensure each fits on one line on a 375px wide screen (iPhone SE minimum)
+- Test that both lines remain single-line at 375px viewport width
+
+---
+
+## CHANGE 2 — STARRY AUDIO ATMOSPHERE (replaces starry section from v4)
+
+The starry atmosphere used on Screens 3 and 4 must feel light-hearted,
+warm, and gently alive — not serene or overly still.
+
+Replace the previous starry audio implementation with the following:
+
+Generate using Web Audio API:
+
+PLUCKED TONES:
+- Use oscillators with a quick attack (0.01s) and medium release (1.2–1.8s)
+  to simulate a soft plucked or chimed quality
+- Play tones at frequencies from a pentatonic scale in a warm register:
+  suggested frequencies: 523, 659, 784, 1047, 1319 Hz (C5 pentatonic)
+- Trigger one tone every 1.5–3.5 seconds, chosen randomly from the scale
+- Each tone: low gain (0.06–0.10), with a gentle reverb tail
+- Vary the gain slightly per note for a natural, human feel
+- The result should feel like distant wind chimes or a music box —
+  light, warm, slightly playful, never mechanical
+
+WARM PAD UNDERNEATH:
+- Two oscillators slightly detuned (e.g. 261 Hz and 263 Hz) creating a
+  gentle shimmer
+- Very low gain (0.03–0.05), continuous
+- Add reverb for spaciousness
+- This sits underneath the plucked tones as a warm ambient foundation
+
+DURING LANTERN RELEASE:
+- Increase plucked tone frequency slightly (every 1–2 seconds instead of
+  every 1.5–3.5) for a sense of gentle celebration
+- Slightly increase pad gain for a soft swell
+- Return to normal timing after the lantern settles (~6 seconds)
+
+OVERALL FEELING:
+Warm, wondering, gently celebratory — like watching lights rise into a
+night sky with quiet joy. Not melancholic. Not silent. Alive but soft.
+
+---
+
+## CHANGE 3 — FULL SCREEN COVERAGE AND SAFE AREA (iOS fix)
+
+The app must cover the entire phone screen including the status bar area.
+There must be no black bars or color inconsistency at the top or bottom.
+
+Apply ALL of the following:
+
+HTML/META:
+- Ensure viewport meta tag includes:
+  <meta name="viewport" content="width=device-width, initial-scale=1,
+  viewport-fit=cover">
+- Ensure manifest.json has:
+  "display": "standalone"
+  "background_color": "#0d1220"
+  "theme_color": "#0d1220"
+
+CSS:
+- The root app container must use:
+  min-height: 100dvh;  /* dynamic viewport height — handles iOS chrome */
+  width: 100vw;
+  background-color: #0d1220;  /* always fill with base dark color */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+
+- All canvas elements must be sized to cover the full screen including
+  safe areas. Use:
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  and ensure the parent container has no gap at top or bottom.
+
+- Set background-color: #0d1220 on both <html> and <body> elements so
+  that even before the app renders, the screen is the correct dark color
+  with no white or black flash.
+
+CANVAS RESIZE:
+- When resizing canvas on window resize, use:
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  and immediately redraw the background gradient to prevent any flash.
+
+- The sky gradient on Screen 1 must start at the very top of the canvas
+  (y=0) with no gap. The darkest color (#0d1220) must reach the absolute
+  top edge of the screen.
+
+SCREEN TRANSITIONS:
+- During cross-fade transitions between screens, the background color
+  #0d1220 must always be visible underneath — never white or transparent.
+  Use opacity transitions on screen content, not on the container itself.
+
+---
+
+## SUMMARY OF ALL CHANGES IN THIS ADDENDUM
+
+1. Breathing page title split into two explicit lines — no mid-phrase wrapping
+2. Starry audio replaced with warmer, more light-hearted plucked pentatonic
+   tones and gentle pad — feels like wonder, not stillness
+3. Full iOS safe area coverage — no black bars, consistent color top to bottom,
+   correct viewport meta, canvas fills entire screen

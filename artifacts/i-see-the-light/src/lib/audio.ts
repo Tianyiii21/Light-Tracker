@@ -1,20 +1,24 @@
 export type Atmosphere = "ocean" | "starry";
 
+// C5 pentatonic — warm register, feel like distant chimes or a music box
+const PENTATONIC_HZ = [523, 659, 784, 1047, 1319];
+
 class AudioEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private oceanGain: GainNode | null = null;
   private starryGain: GainNode | null = null;
-  private swellGain: GainNode | null = null;   // separate node for release swell
+  private padGain: GainNode | null = null;    // controlled for release swell
   private convolver: ConvolverNode | null = null;
   private currentAtmosphere: Atmosphere = "ocean";
   private enabled = false;
   private toneTimer: ReturnType<typeof setTimeout> | null = null;
   private stopTimer: ReturnType<typeof setTimeout> | null = null;
+  private swellActive = false;
+  private swellResetTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Must be called from a user gesture (iOS AudioContext policy)
   async start(): Promise<void> {
-    // Cancel any pending suspend
     if (this.stopTimer) {
       clearTimeout(this.stopTimer);
       this.stopTimer = null;
@@ -27,7 +31,7 @@ class AudioEngine {
         const now = this.ctx.currentTime;
         this.masterGain!.gain.setValueAtTime(0, now);
         this.masterGain!.gain.linearRampToValueAtTime(0.5, now + 2);
-        this.scheduleTone(); // restart sparse tones
+        this.scheduleTone();
       }
       return;
     }
@@ -36,15 +40,13 @@ class AudioEngine {
       const ctx = new AudioContext();
       this.ctx = ctx;
 
-      // Master gain — fades all audio in/out
       const master = ctx.createGain();
       master.gain.value = 0;
       master.connect(ctx.destination);
       this.masterGain = master;
 
-      // Atmosphere gain nodes
       const oceanGain = ctx.createGain();
-      oceanGain.gain.value = 1; // ocean is default on start
+      oceanGain.gain.value = 1;
       oceanGain.connect(master);
       this.oceanGain = oceanGain;
 
@@ -56,7 +58,6 @@ class AudioEngine {
       this.buildOcean(ctx, oceanGain);
       this.buildStarry(ctx, starryGain);
 
-      // Fade in
       master.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 2);
       this.enabled = true;
       this.scheduleTone();
@@ -71,10 +72,8 @@ class AudioEngine {
     const master = this.masterGain;
 
     this.enabled = false;
-    if (this.toneTimer !== null) {
-      clearTimeout(this.toneTimer);
-      this.toneTimer = null;
-    }
+    if (this.toneTimer !== null) { clearTimeout(this.toneTimer); this.toneTimer = null; }
+    if (this.swellResetTimer !== null) { clearTimeout(this.swellResetTimer); this.swellResetTimer = null; }
 
     master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
     master.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
@@ -104,27 +103,42 @@ class AudioEngine {
     this.currentAtmosphere = atm;
   }
 
-  // Called during lantern release — swells the pad gently then returns
+  // Called during lantern release — plucked tones quicken, pad swells gently
   triggerReleaseSwell(): void {
-    if (!this.ctx || !this.swellGain || !this.enabled) return;
-    const g = this.swellGain;
-    const now = this.ctx.currentTime;
-    g.gain.setValueAtTime(g.gain.value, now);
-    g.gain.linearRampToValueAtTime(1.65, now + 2.2);
-    g.gain.setValueAtTime(1.65, now + 4.5);
-    g.gain.linearRampToValueAtTime(1.0, now + 8);
+    if (!this.ctx || !this.padGain || !this.enabled) return;
+    const ctx = this.ctx;
+    const pad = this.padGain;
+    const now = ctx.currentTime;
+
+    // Swell pad
+    pad.gain.setValueAtTime(pad.gain.value, now);
+    pad.gain.linearRampToValueAtTime(0.09, now + 2);
+
+    // Speed up tone scheduling
+    this.swellActive = true;
+
+    // Return to normal after 6 seconds
+    if (this.swellResetTimer) clearTimeout(this.swellResetTimer);
+    this.swellResetTimer = setTimeout(() => {
+      this.swellActive = false;
+      if (this.padGain && this.ctx) {
+        const n = this.ctx.currentTime;
+        this.padGain.gain.setValueAtTime(this.padGain.gain.value, n);
+        this.padGain.gain.linearRampToValueAtTime(0.04, n + 2.5);
+      }
+      this.swellResetTimer = null;
+    }, 6000);
   }
 
   // ---- Private builders ----
 
   private buildOcean(ctx: AudioContext, dest: AudioNode): void {
-    // Noise buffer (4s, looped)
     const bufSize = ctx.sampleRate * 4;
     const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
     const data = noiseBuf.getChannelData(0);
     for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
 
-    // Primary wave layer — bandpass filtered noise modulated by LFO
+    // Primary wave layer
     const noise1 = ctx.createBufferSource();
     noise1.buffer = noiseBuf;
     noise1.loop = true;
@@ -137,7 +151,6 @@ class AudioEngine {
     const noiseEnv1 = ctx.createGain();
     noiseEnv1.gain.value = 0.2;
 
-    // LFO — slow wave rhythm (0.12 Hz ≈ one wave crest every 8s)
     const lfo1 = ctx.createOscillator();
     lfo1.frequency.value = 0.12;
     const lfoAmt1 = ctx.createGain();
@@ -149,7 +162,7 @@ class AudioEngine {
     bpf1.connect(noiseEnv1);
     noiseEnv1.connect(dest);
 
-    // Secondary wave layer — slightly different texture
+    // Secondary wave layer
     const noise2 = ctx.createBufferSource();
     noise2.buffer = noiseBuf;
     noise2.loop = true;
@@ -163,7 +176,7 @@ class AudioEngine {
     noiseEnv2.gain.value = 0.13;
 
     const lfo2 = ctx.createOscillator();
-    lfo2.frequency.value = 0.07; // slightly slower
+    lfo2.frequency.value = 0.07;
     const lfoAmt2 = ctx.createGain();
     lfoAmt2.gain.value = 0.08;
     lfo2.connect(lfoAmt2);
@@ -173,7 +186,7 @@ class AudioEngine {
     bpf2.connect(noiseEnv2);
     noiseEnv2.connect(dest);
 
-    // Low-frequency rumble (standing on wet sand)
+    // Low rumble
     const rumble = ctx.createOscillator();
     rumble.type = "sine";
     rumble.frequency.value = 68;
@@ -190,13 +203,13 @@ class AudioEngine {
   }
 
   private buildStarry(ctx: AudioContext, dest: AudioNode): void {
-    // Convolver reverb — spacious 3.5s tail
-    const revDur = 3.5;
+    // Convolver reverb — spacious tail for depth
+    const revDur = 3.0;
     const revBuf = ctx.createBuffer(2, Math.floor(ctx.sampleRate * revDur), ctx.sampleRate);
     for (let c = 0; c < 2; c++) {
       const d = revBuf.getChannelData(c);
       for (let i = 0; i < revBuf.length; i++) {
-        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / revBuf.length, 2.8);
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / revBuf.length, 2.2);
       }
     }
     const conv = ctx.createConvolver();
@@ -204,41 +217,47 @@ class AudioEngine {
     this.convolver = conv;
     conv.connect(dest);
 
-    // Warm ambient pad — 3 slightly detuned sine oscillators
-    const padFreqs = [220.0, 221.4, 218.7];
-    const swellGain = ctx.createGain();
-    swellGain.gain.value = 1;
-    this.swellGain = swellGain;
-    swellGain.connect(dest);
-    swellGain.connect(conv);
+    // Warm pad — two detuned oscillators at C4, very low gain
+    const padGain = ctx.createGain();
+    padGain.gain.value = 0.04;
+    this.padGain = padGain;
 
-    padFreqs.forEach((freq) => {
+    [261.0, 263.0].forEach((freq) => {
       const osc = ctx.createOscillator();
       osc.type = "sine";
       osc.frequency.value = freq;
-      const g = ctx.createGain();
-      g.gain.value = 0.028;
-      osc.connect(g);
-      g.connect(swellGain);
+      osc.connect(padGain);
       osc.start();
     });
+
+    padGain.connect(dest);
+    padGain.connect(conv); // reverb send
   }
 
   private scheduleTone(): void {
     if (!this.enabled || !this.ctx) return;
-    const delay = 3000 + Math.random() * 5000; // 3–8 seconds
+    // During swell: shorter 1–2s interval; normal: 1.5–3.5s
+    const [lo, hi] = this.swellActive ? [1000, 2000] : [1500, 3500];
+    const delay = lo + Math.random() * (hi - lo);
+
     this.toneTimer = setTimeout(() => {
-      this.playSparseTone();
+      this.playPluckedTone();
       this.scheduleTone();
     }, delay);
   }
 
-  private playSparseTone(): void {
+  private playPluckedTone(): void {
     if (!this.ctx || !this.convolver || !this.enabled) return;
     const ctx = this.ctx;
     const now = ctx.currentTime;
 
-    const freq = 800 + Math.random() * 1600; // 800–2400 Hz
+    // Pick a random note from the pentatonic scale
+    const freq = PENTATONIC_HZ[Math.floor(Math.random() * PENTATONIC_HZ.length)];
+    // Slight gain variation for natural, human feel
+    const gain = 0.06 + Math.random() * 0.04; // 0.06–0.10
+    // Release time variation: 1.2–1.8s
+    const releaseTime = 1.2 + Math.random() * 0.6;
+
     const osc = ctx.createOscillator();
     osc.type = "sine";
     osc.frequency.value = freq;
@@ -247,19 +266,19 @@ class AudioEngine {
     g.gain.value = 0;
 
     osc.connect(g);
-    g.connect(this.convolver); // reverb send only — keeps it ethereal
+    g.connect(this.convolver); // reverb only — keeps it warm and distant
 
     osc.start(now);
-    // Slow attack
-    g.gain.linearRampToValueAtTime(0.048, now + 0.65);
-    // Hold briefly
-    g.gain.setValueAtTime(0.048, now + 0.9);
-    // Long release
-    g.gain.linearRampToValueAtTime(0, now + 2.6);
+    // Quick pluck attack
+    g.gain.linearRampToValueAtTime(gain, now + 0.01);
+    // Decay
+    g.gain.setValueAtTime(gain, now + 0.04);
+    g.gain.linearRampToValueAtTime(0, now + 0.04 + releaseTime);
 
+    const totalMs = (0.04 + releaseTime + 0.1) * 1000;
     setTimeout(() => {
       try { osc.stop(); osc.disconnect(); g.disconnect(); } catch { /* ignore */ }
-    }, 2800);
+    }, totalMs);
   }
 }
 

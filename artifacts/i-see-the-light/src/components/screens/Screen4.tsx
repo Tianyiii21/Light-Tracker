@@ -216,7 +216,7 @@ export default function Screen4({ onBack }: Screen4Props) {
       >
         <h1
           className="font-serif memory-sky-title fade-up"
-          style={{ fontSize: "clamp(2.5rem, 7vw, 3rem)" }}
+          style={{ fontSize: "clamp(2rem, 5.5vw, 2.25rem)" }}
         >
           Your Memory Sky
         </h1>

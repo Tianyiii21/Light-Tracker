@@ -52,41 +52,49 @@ body {
 }
 
 /* Transitions */
-.screen-transition-enter {
-  opacity: 0;
-}
-.screen-transition-enter-active {
-  opacity: 1;
-  transition: opacity 2s ease-in-out;
-}
-.screen-transition-exit {
-  opacity: 1;
-}
-.screen-transition-exit-active {
-  opacity: 0;
-  transition: opacity 2s ease-in-out;
-}
+.screen-transition-enter { opacity: 0; }
+.screen-transition-enter-active { opacity: 1; transition: opacity 2s ease-in-out; }
+.screen-transition-exit { opacity: 1; }
+.screen-transition-exit-active { opacity: 0; transition: opacity 2s ease-in-out; }
 
 /* Fade up animation */
 .fade-up {
   animation: fadeUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Delay utilities */
-.delay-100 { animation-delay: 100ms; opacity: 0; }
-.delay-200 { animation-delay: 200ms; opacity: 0; }
-.delay-300 { animation-delay: 300ms; opacity: 0; }
-.delay-400 { animation-delay: 400ms; opacity: 0; }
-.delay-500 { animation-delay: 500ms; opacity: 0; }
-.delay-700 { animation-delay: 700ms; opacity: 0; }
+.delay-100  { animation-delay: 100ms;  opacity: 0; }
+.delay-200  { animation-delay: 200ms;  opacity: 0; }
+.delay-300  { animation-delay: 300ms;  opacity: 0; }
+.delay-400  { animation-delay: 400ms;  opacity: 0; }
+.delay-500  { animation-delay: 500ms;  opacity: 0; }
+.delay-700  { animation-delay: 700ms;  opacity: 0; }
 .delay-1000 { animation-delay: 1000ms; opacity: 0; }
+
+/* ─── "Your Memory Sky" luminous title ───────────────────────────────────── */
+/* Slow breathing glow — brighter at peak, softer at trough, 5s cycle */
+@keyframes glow-pulse {
+  0%, 100% {
+    text-shadow:
+      0 0 20px rgba(215, 165, 75, 0.90),
+      0 0 40px rgba(215, 165, 75, 0.50),
+      0 0 80px rgba(200, 140, 60, 0.30);
+  }
+  50% {
+    text-shadow:
+      0 0 28px rgba(215, 165, 75, 0.65),
+      0 0 55px rgba(215, 165, 75, 0.32),
+      0 0 100px rgba(200, 140, 60, 0.18);
+  }
+}
+
+.memory-sky-title {
+  animation: glow-pulse 5s ease-in-out infinite;
+  color: #e8bb58;           /* slightly brighter than app's #D7A54B */
+  letter-spacing: 0.05em;
+  font-weight: 400;
+}

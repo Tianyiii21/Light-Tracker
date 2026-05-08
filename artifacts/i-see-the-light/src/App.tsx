@@ -6,6 +6,7 @@ import Screen3 from "./components/screens/Screen3";
 import Screen4 from "./components/screens/Screen4";
 import { AudioToggle } from "./components/ui/AudioToggle";
 import { Mood } from "./lib/store";
+import { audioEngine } from "./lib/audio";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,20 +20,24 @@ function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>(1);
   const [fading, setFading] = useState(false);
 
-  // Shared mood across screens
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
-
-  // Track Screen 3 state — when returning from Screen 4 we show the POST-RELEASE view
   const [screen3PostRelease, setScreen3PostRelease] = useState(false);
-
-  // Persist the AI closing line so it survives the Screen 3 → Screen 4 → Screen 3 round-trip
-  const [savedClosingLine, setSavedClosingLine] = useState("Tonight will keep this light safe.");
+  const [savedClosingLine, setSavedClosingLine] = useState(
+    "Tonight will keep this light safe."
+  );
 
   const navigate = (screen: ScreenType, opts?: { screen3Post?: boolean }) => {
     if (fading) return;
     setFading(true);
 
-    // Pre-configure destination state before the screen mounts
+    // Switch audio atmosphere — crossfade begins immediately
+    if (screen === 1 || screen === 2) {
+      audioEngine.setAtmosphere("ocean", 3);
+    } else {
+      // Screens 3 & 4 → starry atmosphere
+      audioEngine.setAtmosphere("starry", 3);
+    }
+
     if (screen === 3) {
       setScreen3PostRelease(opts?.screen3Post ?? false);
     }
@@ -48,7 +53,7 @@ function AppContent() {
       className="relative w-full bg-[#0d1220] overflow-hidden"
       style={{ height: "100dvh" }}
     >
-      {/* Audio toggle — fixed, always visible */}
+      {/* Audio toggle — always visible, top-left */}
       <div
         className="absolute z-50"
         style={{
@@ -89,9 +94,7 @@ function AppContent() {
         )}
 
         {currentScreen === 4 && (
-          <Screen4
-            onBack={() => navigate(3, { screen3Post: true })}
-          />
+          <Screen4 onBack={() => navigate(3, { screen3Post: true })} />
         )}
       </div>
     </div>

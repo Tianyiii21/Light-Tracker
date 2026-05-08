@@ -1,0 +1,90 @@
+# I See the Light — Prompt Addendum (v3 → v4 changes)
+
+Apply these changes on top of the v3 prompt. They override the relevant
+sections from v3 where there is any conflict.
+
+---
+
+## CHANGE 1 — AMBIENT AUDIO (replaces v3 audio section entirely)
+
+Do NOT use external audio files or URLs.
+Generate all sound entirely using the Web Audio API.
+
+Create two distinct audio atmospheres that crossfade between screens:
+
+### OCEAN ATMOSPHERE (Screens 1 and 2)
+Generate using Web Audio API:
+- Multiple sine wave oscillators at very low frequencies (0.05–0.3 Hz) to
+  simulate slow wave motion
+- Bandpass-filtered white noise to create the texture of distant water
+- A gentle low rumble using an oscillator around 60–80 Hz at very low gain
+- LFO (low frequency oscillator) slowly modulating the noise volume to
+  simulate waves rising and falling organically
+- Overall effect: standing near the ocean at dusk, soft and enveloping
+
+### STARRY ATMOSPHERE (Screens 3 and 4)
+Generate using Web Audio API:
+- Sparse high sine tones at varied frequencies (800–2400 Hz) with very slow
+  attack and long release envelopes — like distant stars chiming softly
+- Each tone plays infrequently and independently with randomised timing
+  (one tone every 3–8 seconds, randomised)
+- A soft pad underneath: two or three sine oscillators slightly detuned from
+  each other, creating a warm hovering ambient texture
+- Add convolver reverb to make everything feel spacious and distant
+- Overall effect: floating in open night sky, quiet and still, faintly musical
+
+### CROSSFADE BEHAVIOUR
+- Ocean atmosphere plays on Screens 1 and 2
+- Starry atmosphere plays on Screens 3 and 4
+- When transitioning between Screen 2 and Screen 3: crossfade audio slowly
+  over 3 seconds — ocean fades out as starry fades in
+- Crossfades should be imperceptible — the user feels the atmosphere shift,
+  not the music change
+- During lantern release animation on Screen 3: subtly increase the gain of
+  the starry pad slightly (a gentle swell), then return to normal after the
+  lantern settles
+
+### AUDIO TOGGLE
+- Small understated toggle button fixed in top corner
+- Audio OFF by default — user must tap to activate
+- On activation: fade both AudioContext gain in slowly over 2 seconds
+- On deactivation: fade out slowly over 2 seconds, then suspend AudioContext
+- Use a soft wave or sound icon, muted color, unobtrusive
+- iOS compatibility: AudioContext must be created or resumed inside the
+  toggle button's tap event handler to satisfy iOS autoplay policy
+- If Web Audio API is unavailable, fail silently with no error shown
+
+---
+
+## CHANGE 2 — "YOUR MEMORY SKY" TITLE STYLING
+
+The title "Your Memory Sky" on Screen 4 must feel sacred and luminous —
+the most visually striking title in the entire app.
+
+Requirements:
+- Font: Cormorant Garamond, weight 400 (slightly heavier than the rest of
+  the app's 300 weight titles)
+- Font size: larger than "I See the Light" on Screen 2 — aim for 44–48px
+- Color: warm lantern gold, brighter than other gold text in the app
+- Text shadow / glow: multiple layered glows to create a luminous effect:
+    text-shadow:
+      0 0 20px rgba(215, 165, 75, 0.9),
+      0 0 40px rgba(215, 165, 75, 0.5),
+      0 0 80px rgba(200, 140, 60, 0.3);
+- The glow should pulse very slowly using a CSS animation or JS sine wave —
+  breathing between slightly brighter and slightly softer over 4–6 seconds
+- Letter spacing: slightly wider than normal (0.04–0.06em) for an airy,
+  celestial feeling
+- The title should feel like it is made of the same light as the lanterns
+  floating behind it — not just text, but light itself
+
+---
+
+## SUMMARY OF ALL CHANGES IN THIS ADDENDUM
+
+1. All audio generated via Web Audio API — no external files
+2. Two distinct audio atmospheres: ocean (Screens 1–2) and starry (Screens 3–4)
+3. Slow imperceptible crossfade between atmospheres at Screen 2→3 transition
+4. Subtle audio swell during lantern release animation
+5. "Your Memory Sky" title: larger, bolder weight, brighter gold, layered glow,
+   slow breathing pulse animation

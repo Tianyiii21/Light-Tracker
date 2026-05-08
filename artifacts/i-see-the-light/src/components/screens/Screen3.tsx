@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useGeneratePoetry } from "@workspace/api-client-react";
 import { Mood, getMoodColor, saveEntry } from "../../lib/store";
 import { drawLantern } from "../../lib/lantern";
+import { audioEngine } from "../../lib/audio";
 
 type Phase = "writing" | "releasing" | "settled" | "linkVisible";
 
@@ -111,6 +112,9 @@ export default function Screen3({
       gratitudes: filledGratitudes,
       lanternColor: getMoodColor(selectedMood),
     });
+
+    // Trigger audio swell during release animation
+    audioEngine.triggerReleaseSwell();
 
     // Fetch closing line in parallel — update ref so canvas callback can read it
     generatePoetry(

@@ -9,9 +9,7 @@ import { Mood } from "./lib/store";
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    mutations: {
-      retry: 1,
-    },
+    mutations: { retry: 1 },
   },
 });
 
@@ -19,16 +17,28 @@ export type ScreenType = 1 | 2 | 3 | 4;
 
 function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>(1);
-  const [visible, setVisible] = useState<ScreenType>(1);
   const [fading, setFading] = useState(false);
+
+  // Shared mood across screens
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
 
-  const navigate = (screen: ScreenType) => {
+  // Track Screen 3 state — when returning from Screen 4 we show the POST-RELEASE view
+  const [screen3PostRelease, setScreen3PostRelease] = useState(false);
+
+  // Persist the AI closing line so it survives the Screen 3 → Screen 4 → Screen 3 round-trip
+  const [savedClosingLine, setSavedClosingLine] = useState("Tonight will keep this light safe.");
+
+  const navigate = (screen: ScreenType, opts?: { screen3Post?: boolean }) => {
     if (fading) return;
     setFading(true);
+
+    // Pre-configure destination state before the screen mounts
+    if (screen === 3) {
+      setScreen3PostRelease(opts?.screen3Post ?? false);
+    }
+
     setTimeout(() => {
       setCurrentScreen(screen);
-      setVisible(screen);
       setFading(false);
     }, 1800);
   };
@@ -38,12 +48,12 @@ function AppContent() {
       className="relative w-full bg-[#0d1220] overflow-hidden"
       style={{ height: "100dvh" }}
     >
-      {/* Audio toggle — always visible, top-left */}
+      {/* Audio toggle — fixed, always visible */}
       <div
         className="absolute z-50"
         style={{
-          top: "calc(env(safe-area-inset-top) + 16px)",
-          left: "16px",
+          top: "calc(env(safe-area-inset-top) + 14px)",
+          left: "14px",
         }}
       >
         <AudioToggle />
@@ -59,6 +69,7 @@ function AppContent() {
         }}
       >
         {currentScreen === 1 && <Screen1 onNext={() => navigate(2)} />}
+
         {currentScreen === 2 && (
           <Screen2
             onNext={() => navigate(3)}
@@ -66,13 +77,22 @@ function AppContent() {
             setSelectedMood={setSelectedMood}
           />
         )}
+
         {currentScreen === 3 && (
           <Screen3
             onNext={() => navigate(4)}
             selectedMood={selectedMood ?? "clear"}
+            initialState={screen3PostRelease ? "settled" : "writing"}
+            savedClosingLine={savedClosingLine}
+            onClosingLineSaved={setSavedClosingLine}
           />
         )}
-        {currentScreen === 4 && <Screen4 onBack={() => navigate(3)} />}
+
+        {currentScreen === 4 && (
+          <Screen4
+            onBack={() => navigate(3, { screen3Post: true })}
+          />
+        )}
       </div>
     </div>
   );

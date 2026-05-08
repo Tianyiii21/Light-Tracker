@@ -1,0 +1,515 @@
+# I See the Light — Revised Replit Prompt (v3)
+
+Build a mobile-first Progressive Web App (PWA) gratitude journaling experience
+inspired by ocean tides, floating lantern light, and the emotional atmosphere of
+"I See the Light" from Tangled.
+
+The app should feel like:
+- a reflective emotional sanctuary
+- a cinematic nighttime ritual
+- an intimate memory space
+- calm, poetic, immersive, and emotionally warm
+
+This is NOT productivity software.
+
+Avoid:
+- streaks, achievements, points, gamification
+- habit-tracker energy
+- dashboard aesthetics
+- corporate wellness app styling
+
+The emotional goal is: to help users gently notice light in their day, release it
+into the sky, and return tomorrow feeling emotionally held.
+
+---
+
+## CORE EMOTIONAL METAPHOR
+
+The experience follows this emotional flow:
+
+1. Breathe with the ocean
+2. Notice the light in today
+3. Write three small gratitudes
+4. Release them into the sky as a single lantern representing that day
+5. Watch your lantern settle into the Memory Sky
+6. Revisit preserved memories in a personal sky full of lanterns
+
+The app should feel like: "an interactive emotional poem held in the hand."
+
+---
+
+## PLATFORM & TECH
+
+Build as a mobile-first Progressive Web App (PWA):
+- Single HTML file with embedded CSS and JavaScript
+- Installable on iPhone and Android home screens
+- Standalone fullscreen experience
+- Optimized for portrait phone screens
+- Include manifest.json and service worker for PWA support
+- Support safe-area-inset-top/bottom for phone notches
+- Smooth loading transitions
+
+---
+
+## DATA STORAGE
+
+Store all journal entries in localStorage as JSON.
+
+Each entry object should contain:
+- `date` (ISO string)
+- `mood` (string: "clear", "soft", "heavy", or "quiet")
+- `gratitudes` (array of up to 3 strings)
+- `lanternColor` (derived from mood — see color system below)
+
+One entry per day. One lantern per entry. Load entries on app start. Persist new
+entries after each release.
+
+---
+
+## AI INTEGRATION
+
+Use the Anthropic Claude API for all AI-generated text.
+
+API details:
+- Endpoint: `https://api.anthropic.com/v1/messages`
+- Model: `claude-sonnet-4-20250514`
+- Max tokens: 80
+- No API key required in code — the environment handles authentication
+
+Use the API to generate:
+
+**Screen 2 — Daily reflective quote** ("Today's Light")
+Prompt: "Write one short, quietly poetic sentence (under 12 words) for a morning
+gratitude journal. Tone: observational, emotionally honest, gently hopeful — never
+motivational or prescriptive. Examples: 'Today feels softer somehow.' / 'Some
+moments quietly mattered.' / 'The light stayed a little longer.' Return only the
+sentence, nothing else."
+
+**Screen 3 — Gratitude page header**
+Prompt: "Write one short poetic sentence (under 12 words) to open a gratitude
+journal page. Tone: gentle, quietly hopeful, grounded. Examples: 'Small lights
+still found me today.' / 'Some moments deserve the sky.' / 'There was warmth
+hidden in today.' Return only the sentence, nothing else."
+
+**Screen 3 — Closing line (after lantern release)**
+Prompt: "Write one short, warm, emotionally grounding closing line (under 15 words)
+for a gratitude journaling app, shown after the user releases their lantern. Tone:
+intimate, quietly grateful, human — not inspirational or motivational. Examples:
+'Tonight will keep this light safe.' / 'The ocean remembers gentle things.' /
+'Your light made tonight's sky a little warmer.' Return only the sentence."
+
+If the API call fails, fall back to a curated local list of pre-written lines. Never
+show a loading error to the user — just show the fallback text silently.
+
+---
+
+## TYPOGRAPHY SYSTEM
+
+Fonts (load from Google Fonts):
+- `Cormorant Garamond` — for emotional titles, poetic moments, reflective text,
+  AI-generated quotes and headers
+- `Nunito` (weight 300–400) — for UI labels, dates, buttons, structural text,
+  AND all user writing input fields
+
+Typography rules:
+- "I See the Light" and "Your Memory Sky" share the same Cormorant Garamond styling
+- Emotional titles: warm lantern-gold color with subtle glow
+- Structural text: soft warm white or muted neutral
+- User input textarea fields must use Nunito, weight 300, at a comfortable reading size
+- Avoid pure black text anywhere in the app
+- Generous line height (1.6–1.8) throughout
+- Large breathing room between elements
+
+---
+
+## COLOR & LIGHTING SYSTEM
+
+Primary palette:
+- Deep twilight blue: `#0d1220`
+- Muted lavender: `rgba(170,150,215,...)`
+- Soft sunset pink: `rgba(210,155,155,...)`
+- Warm honey gold: `rgba(215,165,75,...)`
+- Candlelight amber: `rgba(200,150,70,...)`
+
+Lantern colors by mood:
+- Clear ☀️ → warm honey gold `rgb(215,165,75)`
+- Soft 🌤 → soft lavender `rgb(175,155,215)`
+- Heavy 🌧 → muted indigo `rgb(120,130,205)`
+- Quiet 🌙 → dusty rose pink `rgb(210,155,155)`
+
+Lighting philosophy:
+- Warm light floating inside cool darkness
+- Lantern reflections on water below the horizon
+- Soft cinematic gradients, no harsh edges
+- Glow accents only — never neon or oversaturated
+
+---
+
+## LANTERN SHAPE — CRITICAL
+
+Every lantern drawn in this app must look like a traditional sky lantern.
+Do NOT use a plain ellipse or oval — that looks like an egg, not a lantern.
+
+Draw each lantern on canvas using the following structure:
+
+1. BODY: A rounded barrel shape — wider in the middle, gently tapering toward
+   the top and bottom. Use bezier curves to achieve this.
+   Approximate proportions: width ~22px, height ~34px at normal size.
+
+2. TOP CAP: A small flat ellipse or trapezoid at the very top of the body,
+   slightly narrower than the widest point. Suggests the folded paper crown.
+
+3. BOTTOM OPENING: A slightly wider ellipse at the bottom of the body,
+   open to suggest the lantern mouth where heat escapes.
+
+4. FLAME/GLOW: A small warm amber teardrop or oval below the bottom opening,
+   representing the candle or flame element. Add a radial glow around it.
+
+5. WIRE DETAIL (optional): One or two thin lines crossing inside the bottom
+   opening, suggesting the wire frame that holds the candle.
+
+6. OVERALL GLOW: A large soft radial gradient surrounding the whole lantern
+   in the lantern's color, fading to transparent. This is the light it emits.
+
+The lantern should be immediately recognizable as a paper sky lantern —
+warm, glowing, slightly translucent-looking, delicate.
+
+Scale lanterns proportionally: Memory Sky lanterns can be smaller (12–18px wide),
+release animation lanterns can be larger (20–30px wide).
+
+---
+
+## STAR BEHAVIOUR — CRITICAL
+
+Stars appear in the night sky on Screens 3 and 4, and in the Memory Sky.
+
+Star blinking rules:
+- Each star must have its own independent random phase offset
+- Stars pulse using a sine wave on opacity: opacity = baseOpacity + amplitude * sin(time * frequency + phase)
+- Frequency must be VERY LOW — each star should take 4 to 8 seconds to complete
+  one full pulse cycle. Use frequency values between 0.008 and 0.015 per frame.
+- Amplitude should be subtle: opacity ranges from ~0.15 to ~0.55 maximum
+- Stars must NEVER flash, strobe, or change abruptly
+- Stars must NEVER react to user input such as typing
+- The overall effect should feel like a slow, breathing night sky — barely perceptible
+  changes that feel natural and calm, not decorative or animated
+
+Do NOT tie star behaviour to any user interaction or text input events.
+
+---
+
+## MOTION PRINCIPLES
+
+All motion should feel:
+- Slow and organic
+- Meditative and flowing
+- Emotionally restrained
+
+Avoid:
+- Abrupt cuts between screens
+- Particle explosions
+- Rigid mechanical timing
+- Instant state changes
+
+Use soft easing curves (ease-in-out, cubic-bezier) throughout.
+Screen transitions should cross-fade over 1.5–2.5 seconds.
+
+---
+
+## AMBIENT AUDIO
+
+Include a background music / ocean ambience toggle.
+
+Requirements:
+- A small, understated audio toggle button fixed in the top corner of the screen
+- Use a soft icon (e.g. a wave or speaker symbol)
+- Audio is OFF by default — the user must tap to activate
+- When activated: begin playing soft looping ocean ambience
+- When deactivated: fade audio out smoothly
+- Audio should loop seamlessly with no obvious loop point
+- Fade audio smoothly between screens (do not cut abruptly)
+- If audio cannot load, fail silently — never show an error
+
+Note: iOS requires a user gesture before audio can play. The toggle button
+satisfies this requirement. Do not attempt autoplay.
+
+---
+
+## SCREEN FLOW — IMPORTANT
+
+The app has 4 screens with the following navigation logic:
+
+Screen 1 (Breathe) → auto-advances to Screen 2 after 3 breaths
+Screen 2 (Check-in) → user taps continue → Screen 3 (Write)
+Screen 3 (Write) → user releases lantern → lantern animation plays →
+  closing view appears (Screen 3 post-release state) →
+  Memory Sky (Screen 4) appears automatically after a short delay
+Screen 4 (Memory Sky) → "Return to Tonight" → Screen 3 POST-RELEASE STATE
+  (the closing view with the lantern still visible in the sky and the closing
+  line still shown — NOT the blank writing cards)
+
+Screen 3 has two distinct states:
+- PRE-RELEASE: writing cards visible, "Release to the Sky" button active
+- POST-RELEASE: writing cards gone, lantern visible rising/drifting in sky,
+  AI closing line displayed prominently, soft "memory sky" link below
+
+The "Return to Tonight" button in Screen 4 always returns to the
+POST-RELEASE state of Screen 3, never the pre-release writing state.
+
+Never show more than one screen at a time.
+All transitions: cross-fade 1.5–2.5 seconds.
+
+---
+
+## SCREEN 1 — BREATHING ENTRY
+
+**Purpose:** Help the user slow down and emotionally arrive before journaling.
+
+**Visual:**
+- Full-screen canvas showing an ocean horizon at dusk
+- Sky gradient: deep navy (`#0d1220`) at top → warm teal → honey gold at horizon
+- Layered animated wave shapes moving slowly across the lower 40% of the screen
+- Drifting warm particles (lantern-like) in the sky — sparse, slow, honey-gold
+  and lavender tones
+- Shimmer reflections on the water surface in amber and pink
+
+**Wave design — CRITICAL:**
+The wave breathing motion must feel like one continuous living organism.
+The transition between inhale and exhale must be completely smooth — no snapping,
+no jumping, no mechanical switching.
+
+Requirements:
+- Use 4 layered wave paths drawn on canvas with requestAnimationFrame
+- Each layer has slightly different speed and amplitude
+- Wave crests have subtle moonlight shimmer and lantern-gold reflections
+- During inhale: waves GRADUALLY rise toward shore over the full 4.5 seconds —
+  amplitude increases smoothly, baseY moves up slowly
+- During exhale: waves GRADUALLY recede over the full 4.5 seconds —
+  amplitude decreases smoothly, baseY moves down slowly
+- The wave state must lerp continuously toward its target value every frame:
+  current += (target - current) * 0.008
+  This creates natural organic transition with no abrupt changes
+- The ocean should feel like it is breathing with you, not reacting to you
+
+**Text (centered, upper portion):**
+- Main: "The tide is here. So are you." — Cormorant Garamond, warm gold, subtle glow
+- Secondary: "Breathe with the waves." — Nunito 300, softer muted tone, smaller
+
+**Breathing interaction:**
+- Auto-progress through 3 breath cycles without requiring taps
+- Each cycle: inhale (4.5s) → exhale (4.5s)
+- A soft orb in the center expands on inhale, contracts on exhale
+- Breath instruction text fades: "breathe in..." → "breathe out..."
+- Three soft dots at the bottom light up one by one as each breath completes
+- After each breath: sky warms slightly, horizon glow expands softly
+- After third breath: "beautifully done" fades in gently
+- Then screen cross-fades smoothly into Screen 2
+- Include an understated "skip" text link
+
+---
+
+## SCREEN 2 — I SEE THE LIGHT
+
+**Purpose:** Emotional check-in. Transition from breathing into reflection.
+
+**Visual:**
+- Background: warm golden-hour palette — pale amber at top fading to misty
+  blue-grey at bottom
+- Radial glow near the horizon suggesting early sunrise
+- Animated shimmer layer: slow reflection columns in gold, lavender, and pink
+- Sparse drifting light particles in the upper half
+
+**Layout (top to bottom):**
+1. Eyebrow text: "morning light" — Nunito 300, muted gold, small, uppercase, spaced
+2. Title: "I See the Light" — Cormorant Garamond 300, 38–42px, warm gold
+3. Current date — Nunito 300, italic, soft muted tone
+4. Thin divider line
+5. Mood check-in card (frosted glass panel)
+6. Daily reflective quote card (frosted glass panel)
+7. Continue button: "carry this light forward →"
+
+**Mood check-in:**
+Four mood options: ☀️ Clear / 🌤 Soft / 🌧 Heavy / 🌙 Quiet
+Frosted glass cards, tap to select, emotionally non-judgmental.
+
+**Daily reflective quote:**
+AI-generated, Cormorant Garamond italic, fades in slowly.
+Fallback quotes if API fails:
+- "Today feels softer somehow."
+- "The light stayed a little longer."
+- "Some moments quietly mattered."
+- "Even ordinary days glow a little."
+- "The world was gentle in places."
+
+**Continue button:**
+Rounded pill, frosted glass, Cormorant Garamond italic, soft amber hover glow.
+All elements animate in with staggered fadeUp on screen entry.
+
+---
+
+## SCREEN 3 — GRATITUDE WRITING (PRE-RELEASE STATE)
+
+**Purpose:** The user writes three small things they are grateful for.
+
+**Visual:**
+- Background: dusk-to-night gradient — deep navy at top, dark teal at horizon,
+  near-black at bottom
+- Ocean horizon faintly visible at ~70% down
+- Shimmer reflections on water in gold, lavender, and pink
+- Sparse stars blinking softly — follow STAR BEHAVIOUR rules above
+- Drifting lantern particles — slow, sparse, warm-toned
+
+**Layout (top to bottom):**
+1. AI-generated poetic header — Cormorant Garamond italic, warm gold, centered
+2. Three writing cards
+3. "Release to the Sky" button
+
+**Writing cards:**
+- Three frosted glass panels with soft warm borders
+- Each contains a single textarea
+- NO placeholder text — leave input fields completely empty and plain
+- Textarea background: transparent
+- Input font: Nunito, weight 300, 16px, warm light color rgba(240,220,185,0.88)
+- Line height: 1.65
+- No labels, numbers, or prompts of any kind
+- Cards animate in with staggered fadeUp
+
+**Release button:**
+- Rounded pill, frosted glass, Cormorant Garamond italic
+- Text: "Release to the Sky"
+- Requires at least one non-empty writing card to activate
+
+---
+
+## SCREEN 3 — POST-RELEASE STATE
+
+This is a distinct visual state of Screen 3, not a separate screen.
+It is reached after the lantern release animation completes.
+It is also the state returned to when the user taps "Return to Tonight"
+from the Memory Sky.
+
+**What is visible:**
+- Same night sky background as pre-release
+- Writing cards are gone
+- The released lantern is visible in the sky, drifting slowly
+- AI-generated closing line displayed prominently in the center
+- A soft, borderless text link below: "your memory sky →"
+
+**Closing line styling:**
+- Cormorant Garamond italic
+- Large and emotionally prominent — this is the emotional climax of the experience
+- Warm gold color, subtle glow
+- Fades in gently after the lantern settles
+
+**"Your memory sky →" link:**
+- This is NOT a button — it has no border, no background, no pill shape
+- It is plain text styled as a quiet whisper link
+- Nunito 300, small, muted warm tone, understated
+- It sits below the closing line with generous spacing
+- On tap: cross-fade to Screen 4 (Memory Sky)
+- The user should feel invited to explore, not directed to click
+
+---
+
+## LANTERN RELEASE ANIMATION
+
+IMPORTANT: All three gratitude entries together form ONE single lantern.
+One day = one lantern. Do not create three separate lanterns.
+
+Flow:
+1. Writing cards fade out slowly over 1.5 seconds
+2. Warm ember particles drift upward gently from center — soft easing,
+   varied sizes, organic motion, not an explosion
+3. Particles gather into a single lantern shape at center screen
+4. Lantern ignites with soft amber glow, growing slowly brighter
+5. Lantern rises slowly upward with gentle organic sway motion
+6. Small ambient companion particles drift alongside
+7. Soft shimmer reflections ripple across the ocean surface below
+8. Lantern rises and settles into the upper sky, continuing to drift slowly
+
+After lantern settles:
+- Transition to Screen 3 post-release state
+- Closing line fades in prominently
+- After 3 seconds, "your memory sky →" link fades in softly
+- After a further 5 seconds, Screen 4 appears automatically via cross-fade
+  (the user does not need to tap — it arrives gently on its own)
+
+Lantern color: determined by mood selected on Screen 2.
+Default: warm honey gold.
+Lantern must use proper lantern shape — see LANTERN SHAPE section.
+
+---
+
+## SCREEN 4 — YOUR MEMORY SKY
+
+**Purpose:** A visual archive of all past journal entries as lanterns floating
+in a real night sky. Arrives automatically after the closing view.
+
+**Title:** "Your Memory Sky" — Cormorant Garamond, warm gold glow
+
+**CRITICAL — Render as a real canvas sky, NOT a list:**
+
+Do NOT use text lists, cards, feeds, or any dashboard UI.
+Render entirely on canvas as a living night sky.
+
+**Visual:**
+- Full canvas night sky: deep navy to near-black gradient
+- Stars blinking softly — follow STAR BEHAVIOUR rules
+- Ocean horizon faintly visible at the bottom
+- All past entries rendered as individual floating lanterns on canvas
+
+**Lantern rendering:**
+- Each past entry = one lantern
+- Draw using proper lantern shape (see LANTERN SHAPE section)
+- Position lanterns at varied x/y positions — scattered naturally, not in a grid
+- Newer entries: slightly larger, brighter (opacity ~0.9)
+- Older entries: slightly smaller, more distant-feeling (opacity ~0.4 minimum)
+- Each lantern uses its stored mood color
+- All lanterns drift very slowly with individual sine-wave motion
+  (different phase per lantern so they don't move in sync)
+- Effect: looking up at a personal sky of remembered light
+
+**Tap interaction:**
+Tapping a lantern shows a soft overlay:
+- Date (Nunito, muted)
+- Mood icon
+- Three gratitude entries (Cormorant Garamond italic, warm light color)
+- Gentle close: "×"
+
+**Day 1 fallback (no entries):**
+"Your sky is waiting. Release your first light tonight."
+Cormorant Garamond italic, centered, muted warm tone.
+
+**Exit:**
+Soft understated button at the bottom: "Return to Tonight"
+- Cross-fades to Screen 3 POST-RELEASE STATE
+- Never navigates to the blank writing cards
+
+---
+
+## GENERAL IMPLEMENTATION NOTES
+
+- All screen transitions: cross-fade 1.5–2.5 seconds, never abrupt
+- Canvas elements: resize on window resize, redraw immediately
+- Animations: use requestAnimationFrame for all canvas loops
+- Text: never use pure black — always warm or muted tones
+- Loading: soft placeholder text, fade out when content arrives
+- Errors: all failures degrade gracefully, never show error messages
+- The app should feel complete and beautiful on Day 1 with no stored entries
+- Test on mobile viewport (375px width) as the primary target
+
+---
+
+## EMOTIONAL NORTH STAR
+
+Every design decision should serve this feeling:
+
+"Today held light worth releasing into the sky."
+
+The user should leave feeling:
+- emotionally lighter
+- gently comforted
+- quietly hopeful
+- held by the atmosphere
+
+The app is ultimately about: preserving warmth and releasing light into the night sky.

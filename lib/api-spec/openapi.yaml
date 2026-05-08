@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: poetry
+    description: AI-generated poetic text for the journaling app
 paths:
   /healthz:
     get:
@@ -24,6 +26,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /poetry/generate:
+    post:
+      operationId: generatePoetry
+      tags: [poetry]
+      summary: Generate a short AI poetic line
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PoetryRequest"
+      responses:
+        "200":
+          description: Generated poetic line
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoetryResult"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +53,18 @@ components:
           type: string
       required:
         - status
-
+    PoetryRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [morning_quote, gratitude_header, closing_line]
+      required:
+        - type
+    PoetryResult:
+      type: object
+      properties:
+        text:
+          type: string
+      required:
+        - text

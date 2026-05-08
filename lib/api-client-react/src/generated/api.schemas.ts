@@ -8,3 +8,20 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type PoetryRequestType =
+  (typeof PoetryRequestType)[keyof typeof PoetryRequestType];
+
+export const PoetryRequestType = {
+  morning_quote: "morning_quote",
+  gratitude_header: "gratitude_header",
+  closing_line: "closing_line",
+} as const;
+
+export interface PoetryRequest {
+  type: PoetryRequestType;
+}
+
+export interface PoetryResult {
+  text: string;
+}

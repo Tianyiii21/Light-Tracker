@@ -14,3 +14,14 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Generate a short AI poetic line
+ */
+export const GeneratePoetryBody = zod.object({
+  type: zod.enum(["morning_quote", "gratitude_header", "closing_line"]),
+});
+
+export const GeneratePoetryResponse = zod.object({
+  text: zod.string(),
+});

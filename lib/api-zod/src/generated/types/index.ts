@@ -7,3 +7,6 @@
  */
 
 export * from "./healthStatus";
+export * from "./poetryRequest";
+export * from "./poetryRequestType";
+export * from "./poetryResult";

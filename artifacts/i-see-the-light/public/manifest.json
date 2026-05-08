@@ -1,0 +1,18 @@
+{
+  "name": "I See the Light",
+  "short_name": "Light",
+  "description": "A gratitude journal for the light in your day",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1220",
+  "theme_color": "#0d1220",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

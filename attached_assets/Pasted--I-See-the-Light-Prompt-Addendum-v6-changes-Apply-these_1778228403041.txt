@@ -1,0 +1,144 @@
+# I See the Light — Prompt Addendum (v6 changes)
+
+Apply these three fixes to the existing code. Do not rebuild from scratch.
+
+---
+
+## FIX 1 — BLACK SPACE AT BOTTOM AND CONTENT TOO HIGH
+
+The app content is crammed into the upper portion of the screen with a large
+black void below. Fix this across the entire app.
+
+### CSS fixes:
+
+```css
+html, body {
+  height: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  background: #0d1220;
+  overflow: hidden;
+}
+```
+
+Every screen container must fill the full viewport height:
+
+```css
+.screen {
+  min-height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  box-sizing: border-box;
+}
+```
+
+### Screen 3 layout specifically:
+
+The header line, three writing cards, and release button must be distributed
+vertically across the FULL screen height — not stacked at the top.
+
+Use `justify-content: space-evenly` or `space-between` on the Screen 3
+container so elements breathe across the whole screen. The release button
+should sit in the lower third of the screen, not immediately below the cards.
+There should be generous vertical space between every element.
+
+The three writing cards should each have enough height to be comfortable
+for writing — minimum 80px each. Do not let them collapse or shrink.
+
+---
+
+## FIX 2 — CANVAS MUST COVER FULL SCREEN INCLUDING BOTTOM
+
+All canvas elements throughout the app must use `position: fixed` instead
+of `position: absolute`. Fixed positioning ensures the canvas covers the
+entire viewport including the bottom safe area on iPhone, regardless of
+content height or scroll state.
+
+```css
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+```
+
+In JavaScript, always size canvas to the full window:
+
+```javascript
+function resizeCanvas(canvas) {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+```
+
+Call this on load and on every window resize event. After resizing,
+immediately redraw the background gradient so there is no flash of
+black or white.
+
+The background gradient on every canvas must extend from y=0 all the
+way to the full canvas height — no gaps at top or bottom.
+
+---
+
+## FIX 3 — RESTORE GENTLE STAR BLINKING
+
+Stars are currently completely static. Restore a slow, gentle pulse to
+every star using a sine wave. This must be implemented in the canvas
+animation loop — not with CSS animations.
+
+Each star object must have:
+
+```javascript
+{
+  x: ...,
+  y: ...,
+  radius: ...,
+  phase: Math.random() * Math.PI * 2,   // unique starting phase per star
+  speed: 0.004 + Math.random() * 0.006  // slow pulse: 4–8 second cycle
+}
+```
+
+In the animation loop, update each star every frame:
+
+```javascript
+star.phase += star.speed;
+star.opacity = 0.2 + 0.25 * Math.sin(star.phase);
+
+ctx.beginPath();
+ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+ctx.fillStyle = `rgba(220, 215, 200, ${star.opacity})`;
+ctx.fill();
+```
+
+Rules:
+- Opacity ranges between 0.20 (dim) and 0.45 (soft glow) — never fully
+  invisible, never bright
+- Each star has a different phase offset so they never pulse in sync
+- Each star has a slightly different speed so the sky feels organic
+- The overall effect: a slow breathing night sky, barely perceptible
+  but alive and warm
+- Stars must NEVER be fully static
+- Stars must NEVER react to user typing, tapping, or any input event
+- Star opacity must ONLY be driven by the sine wave above
+
+Apply this star behaviour on Screens 3 and 4 wherever stars appear.
+
+---
+
+## SUMMARY
+
+1. Full screen height coverage — no black void at bottom
+2. Screen 3 content distributed vertically across full screen with
+   space-evenly layout — not cramped at the top
+3. All canvas elements use position fixed and fill window.innerHeight
+4. Stars restored to gentle slow sine-wave pulse (4–8 second cycle)
+   with unique phase per star, never static, never reacting to input

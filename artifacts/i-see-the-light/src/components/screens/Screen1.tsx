@@ -101,7 +101,8 @@ export default function Screen1({ onNext }: Screen1Props) {
       skyGrad.addColorStop(0, "#0d1220");
       skyGrad.addColorStop(0.45, `rgba(${20 + warmth * 40}, ${40 + warmth * 20}, ${65}, 1)`);
       skyGrad.addColorStop(0.75, `rgba(${30 + warmth * 50}, ${55 + warmth * 25}, ${70}, 1)`);
-      skyGrad.addColorStop(1, `rgba(${20 + warmth * 60}, ${30 + warmth * 30}, ${20}, 1)`);
+      skyGrad.addColorStop(0.92, `rgba(${20 + warmth * 60}, ${30 + warmth * 30}, ${20}, 1)`);
+      skyGrad.addColorStop(1, "#0d1220");
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, w, h);
 

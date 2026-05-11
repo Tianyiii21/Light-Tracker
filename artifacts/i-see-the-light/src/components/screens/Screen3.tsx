@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useGeneratePoetry } from "@workspace/api-client-react";
-import { Mood, getMoodColor, saveEntry } from "../../lib/store";
+import { Mood, getMoodColor, saveEntry, updateEntryClosingLine } from "../../lib/store";
 import { drawLantern } from "../../lib/lantern";
 import { audioEngine } from "../../lib/audio";
 import { createStars, resizeStars, drawStar } from "../../lib/stars";
@@ -91,6 +91,7 @@ export default function Screen3({
       const t = setTimeout(onNext, 5000);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [phase, isReturning, onNext]);
 
   // --- Release handler ---
@@ -98,18 +99,21 @@ export default function Screen3({
     const filledGratitudes = gratitudes.filter((g) => g.trim() !== "");
     if (!filledGratitudes.length) return;
 
+    const entryId = crypto.randomUUID();
     saveEntry({
-      id: crypto.randomUUID(),
+      id: entryId,
       date: new Date().toISOString(),
       mood: selectedMood,
       gratitudes: filledGratitudes,
       lanternColor: getMoodColor(selectedMood),
+      closingLine: "",
     });
 
     // Trigger audio swell during release animation
     audioEngine.triggerReleaseSwell();
 
-    // Fetch closing line in parallel — update ref so canvas callback can read it
+    // Fetch closing line in parallel — update ref so canvas callback can read it,
+    // then persist it back to the saved entry so return visits can show it.
     generatePoetry(
       { data: { type: "closing_line" } },
       {
@@ -118,6 +122,7 @@ export default function Screen3({
             setClosingLine(data.text);
             closingLineRef.current = data.text;
             onClosingLineSaved?.(data.text);
+            updateEntryClosingLine(entryId, data.text);
           }
         },
       }
@@ -196,7 +201,7 @@ export default function Screen3({
       bg.addColorStop(0, "#0d1220");
       bg.addColorStop(0.5, "#0c1a26");
       bg.addColorStop(0.72, "#0a1520");
-      bg.addColorStop(1, "#07090f");
+      bg.addColorStop(1, "#0d1220");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 

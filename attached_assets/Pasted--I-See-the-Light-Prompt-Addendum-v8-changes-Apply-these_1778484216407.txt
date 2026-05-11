@@ -1,0 +1,204 @@
+# I See the Light — Prompt Addendum (v8 changes)
+
+Apply these four changes to the existing code. Do not rebuild from scratch.
+
+---
+
+## CHANGE 1 — ONE RELEASE PER DAY / AUTO-REDIRECT TO POST-RELEASE STATE
+
+The app must only allow one lantern release per day. If the user has
+already released their lantern today, opening the app should feel like
+returning to a sanctuary — not being prompted to journal again.
+
+### Logic on app load:
+
+When the app initialises, before showing any screen, check localStorage
+for an entry matching today's date:
+
+```javascript
+function hasReleasedToday() {
+  const entries = JSON.parse(localStorage.getItem('entries') || '[]');
+  const today = new Date().toDateString();
+  return entries.some(e => new Date(e.date).toDateString() === today);
+}
+```
+
+### If an entry exists for today:
+
+Skip the breathing screen, check-in screen, and writing screen entirely.
+Go directly to Screen 3 POST-RELEASE STATE — showing:
+- The night sky background
+- Today's lantern visible and drifting gently in the upper sky
+- The AI-generated closing line from today's entry (stored in localStorage)
+- The soft "your memory sky →" link below
+
+The user should feel like they are returning to sit with something
+already released — not being asked to do anything.
+
+### If no entry exists for today:
+
+Proceed with the normal flow: Screen 1 → Screen 2 → Screen 3 pre-release.
+
+### Store closing line with each entry:
+
+When saving an entry to localStorage, also save the AI-generated closing
+line so it can be retrieved and displayed when the user returns:
+
+```javascript
+// Entry object should include:
+{
+  date: new Date().toISOString(),
+  mood: selectedMood,
+  gratitudes: [g1, g2, g3],
+  lanternColor: color,
+  closingLine: aiGeneratedClosingLine  // add this field
+}
+```
+
+### On return visit (post-release state shown on load):
+
+Retrieve today's entry from localStorage and display:
+- `entry.closingLine` as the prominent closing text
+- The lantern using `entry.lanternColor` and `entry.mood`
+- The "your memory sky →" soft link as normal
+
+---
+
+## CHANGE 2 — DAILY QUOTE ON PAGE 2 MORE GROUNDED AND MEANINGFUL
+
+The current AI-generated quotes on Screen 2 are sometimes too abstract
+or imagistic (coffee, steam, etc.) and feel disconnected from real
+emotional experience.
+
+Replace the existing Screen 2 quote prompt with the following:
+
+```
+"Write one short reflective sentence (under 12 words) for an evening
+gratitude journaling app. The tone should feel like a wise, warm friend
+noticing something true and human about ordinary days — emotionally
+intelligent, quietly encouraging, and grounded in real life experience.
+Avoid abstract imagery, nature metaphors, or poetic flourishes. Speak
+directly to the person. Examples of the right tone: 'You showed up today,
+and that was enough.' / 'Something in you kept going today.' / 'Today
+held more than you might have noticed.' / 'You carried today with more
+grace than you knew.' Return only the sentence, nothing else."
+```
+
+Updated fallback quotes if API fails (replace existing fallbacks):
+- "You showed up today, and that was enough."
+- "Something in you kept going today."
+- "Today held more than you might have noticed."
+- "You carried today with more grace than you knew."
+- "The fact that you are here says something."
+- "Quiet days count too."
+- "You did more good today than you realise."
+- "Rest is part of the work too."
+- "Today was yours, even the hard parts."
+- "Something small you did today mattered."
+
+---
+
+## CHANGE 3 — REPLACE "MORNING LIGHT" WITH "FOLLOW THE LIGHT"
+
+The eyebrow subtitle above "I See the Light" on Screen 2 currently reads
+"morning light" — but this app is used at night as an evening ritual.
+
+Replace "morning light" with "follow the light" everywhere it appears.
+
+Styling remains the same:
+- Nunito 300
+- Small size
+- Uppercase
+- Wide letter spacing
+- Muted warm gold color
+- Sits directly above the "I See the Light" title
+
+"follow the light" should feel like a gentle Disney-adjacent evening
+invitation — warm, directional, quietly magical.
+
+---
+
+## CHANGE 4 — BOTTOM BAR BLENDS INVISIBLY INTO APP (COLOR MATCH FIX)
+
+The iPhone home indicator bar at the very bottom of the screen cannot be
+removed, but it can be made invisible by matching its color exactly to
+the app's darkest background color.
+
+Apply ALL of the following:
+
+### manifest.json — update both color values:
+
+```json
+{
+  "theme_color": "#0d1220",
+  "background_color": "#0d1220"
+}
+```
+
+`theme_color` controls the color iOS uses for the home indicator area
+in PWA standalone mode. Setting it to exactly `#0d1220` makes the bar
+blend into the app's dark background.
+
+### HTML meta tag — add or update:
+
+```html
+<meta name="theme-color" content="#0d1220">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+```
+
+### CSS — body and html background must match exactly:
+
+```css
+html, body {
+  background-color: #0d1220;
+}
+```
+
+### All screen gradients must fade to #0d1220 at the very bottom:
+
+Every canvas background gradient must end with `#0d1220` at the very
+bottom of the canvas. This ensures the transition into the home indicator
+bar is seamless and invisible.
+
+Screen 1 (breathing — ocean):
+```javascript
+gradient.addColorStop(1, '#0d1220');
+```
+
+Screen 2 (check-in — golden hour):
+The warm golden gradient should NOT end abruptly at the bottom. Add a
+final fade to `#0d1220` in the last 10% of the canvas height:
+```javascript
+gradient.addColorStop(0.9, '#1a2535');  // transition tone
+gradient.addColorStop(1, '#0d1220');    // matches home bar exactly
+```
+This makes the bottom of Screen 2 look like the golden light is fading
+naturally into night — intentional and elegant, not broken.
+
+Screen 3 (night sky — writing):
+Already dark. Ensure the very bottom color stop is exactly `#0d1220`:
+```javascript
+gradient.addColorStop(1, '#0d1220');
+```
+
+Screen 4 (memory sky):
+Same as Screen 3:
+```javascript
+gradient.addColorStop(1, '#0d1220');
+```
+
+The result: the home indicator bar becomes completely invisible because
+the app's background and the bar's background are the same color.
+No code can remove the bar — but this makes it disappear visually.
+
+---
+
+## SUMMARY OF ALL CHANGES
+
+1. One lantern release per day — on return visits, auto-skip to
+   post-release state showing today's lantern and closing line
+2. Page 2 quote prompt rewritten to be emotionally grounded and human,
+   not abstract or imagistic — speaks directly to the person
+3. "morning light" replaced with "follow the light" on Screen 2
+4. Bottom home indicator bar made invisible by matching all gradient
+   bottoms and manifest/meta theme colors to exactly #0d1220

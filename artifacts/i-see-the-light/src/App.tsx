@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Screen1 from "./components/screens/Screen1";
 import Screen2 from "./components/screens/Screen2";
 import Screen3 from "./components/screens/Screen3";
 import Screen4 from "./components/screens/Screen4";
 import { AudioToggle } from "./components/ui/AudioToggle";
-import { Mood } from "./lib/store";
+import { Mood, hasReleasedToday, getTodayEntry } from "./lib/store";
 import { audioEngine } from "./lib/audio";
 
 const queryClient = new QueryClient({
@@ -17,24 +17,40 @@ const queryClient = new QueryClient({
 export type ScreenType = 1 | 2 | 3 | 4;
 
 function AppContent() {
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>(1);
+  // Lazy initialisers — read localStorage exactly once at mount, never on re-render.
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>(() =>
+    hasReleasedToday() ? 3 : 1
+  );
   const [fading, setFading] = useState(false);
 
-  const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
-  const [screen3PostRelease, setScreen3PostRelease] = useState(false);
-  const [savedClosingLine, setSavedClosingLine] = useState(
-    "Tonight will keep this light safe."
+  const [selectedMood, setSelectedMood] = useState<Mood | null>(() =>
+    getTodayEntry()?.mood ?? null
   );
+  const [screen3PostRelease, setScreen3PostRelease] = useState(() =>
+    hasReleasedToday()
+  );
+  const [savedClosingLine, setSavedClosingLine] = useState(() => {
+    const entry = getTodayEntry();
+    return entry?.closingLine || "Tonight will keep this light safe.";
+  });
+
+  // Set the correct audio atmosphere on first load
+  useEffect(() => {
+    const initialScreen = hasReleasedToday() ? 3 : 1;
+    if (initialScreen === 3) {
+      audioEngine.setAtmosphere("starry", 0);
+    } else {
+      audioEngine.setAtmosphere("ocean", 0);
+    }
+  }, []);
 
   const navigate = (screen: ScreenType, opts?: { screen3Post?: boolean }) => {
     if (fading) return;
     setFading(true);
 
-    // Switch audio atmosphere — crossfade begins immediately
     if (screen === 1 || screen === 2) {
       audioEngine.setAtmosphere("ocean", 3);
     } else {
-      // Screens 3 & 4 → starry atmosphere
       audioEngine.setAtmosphere("starry", 3);
     }
 

@@ -6,11 +6,16 @@ const router = Router();
 
 const FALLBACK_QUOTES: Record<string, string[]> = {
   morning_quote: [
-    "Today feels softer somehow.",
-    "The light stayed a little longer.",
-    "Some moments quietly mattered.",
-    "Even ordinary days glow a little.",
-    "The world was gentle in places.",
+    "You showed up today, and that was enough.",
+    "Something in you kept going today.",
+    "Today held more than you might have noticed.",
+    "You carried today with more grace than you knew.",
+    "The fact that you are here says something.",
+    "Quiet days count too.",
+    "You did more good today than you realise.",
+    "Rest is part of the work too.",
+    "Today was yours, even the hard parts.",
+    "Something small you did today mattered.",
   ],
   gratitude_header: [
     "Small lights still found me today.",
@@ -30,7 +35,7 @@ const FALLBACK_QUOTES: Record<string, string[]> = {
 
 const PROMPTS: Record<string, string> = {
   morning_quote:
-    'Write one short, quietly poetic sentence (under 12 words) for a morning gratitude journal. Tone: observational, emotionally honest, gently hopeful — never motivational or prescriptive. Examples: "Today feels softer somehow." / "Some moments quietly mattered." / "The light stayed a little longer." Return only the sentence, nothing else.',
+    'Write one short reflective sentence (under 12 words) for an evening gratitude journaling app. The tone should feel like a wise, warm friend noticing something true and human about ordinary days — emotionally intelligent, quietly encouraging, and grounded in real life experience. Avoid abstract imagery, nature metaphors, or poetic flourishes. Speak directly to the person. Examples of the right tone: "You showed up today, and that was enough." / "Something in you kept going today." / "Today held more than you might have noticed." / "You carried today with more grace than you knew." Return only the sentence, nothing else.',
   gratitude_header:
     'Write one short poetic sentence (under 12 words) to open a gratitude journal page. Tone: gentle, quietly hopeful, grounded. Examples: "Small lights still found me today." / "Some moments deserve the sky." / "There was warmth hidden in today." Return only the sentence, nothing else.',
   closing_line:

@@ -35,13 +35,13 @@ export default function Screen2({ onNext, selectedMood, setSelectedMood }: Scree
     <div className="w-full min-h-screen overflow-y-auto pt-16 pb-24 px-6 relative flex flex-col items-center">
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#d7a54b]/10 via-[#1a2332] to-[#0d1220]" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(215,165,75,0.10) 0%, #1a2332 60%, #1a2535 90%, #0d1220 100%)" }} />
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#d7a54b]/5 blur-[100px] rounded-full" />
       </div>
 
       <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-8">
         <div className="text-center fade-up delay-100">
-          <p className="font-sans text-xs tracking-[0.2em] uppercase text-[#D7A54B]/60 mb-3">morning light</p>
+          <p className="font-sans text-xs tracking-[0.2em] uppercase text-[#D7A54B]/60 mb-3">follow the light</p>
           <h1 className="font-serif text-4xl text-[#D7A54B] drop-shadow-[0_0_15px_rgba(215,165,75,0.3)] mb-2">
             I See the Light
           </h1>

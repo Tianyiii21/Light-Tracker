@@ -117,7 +117,7 @@ export default function Screen4({ onBack }: Screen4Props) {
       skyGrad.addColorStop(0, "#04060c");
       skyGrad.addColorStop(0.55, "#080d18");
       skyGrad.addColorStop(0.82, "#0b1220");
-      skyGrad.addColorStop(1, "#09101c");
+      skyGrad.addColorStop(1, "#0d1220");
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, w, h);
 
@@ -133,7 +133,7 @@ export default function Screen4({ onBack }: Screen4Props) {
       // Dark water below horizon
       const waterGrad = ctx.createLinearGradient(0, horizonY, 0, h);
       waterGrad.addColorStop(0, "rgba(9,14,24,0.95)");
-      waterGrad.addColorStop(1, "rgba(5,7,12,1)");
+      waterGrad.addColorStop(1, "rgba(13,18,32,1)");
       ctx.fillStyle = waterGrad;
       ctx.fillRect(0, horizonY, w, h - horizonY);
 

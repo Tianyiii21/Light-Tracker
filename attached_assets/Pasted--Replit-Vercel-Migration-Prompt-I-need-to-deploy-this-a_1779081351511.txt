@@ -1,0 +1,110 @@
+# Replit → Vercel Migration Prompt
+
+I need to deploy this app to Vercel. Please restructure the project so it
+works correctly on Vercel's platform. Do not change any visual design,
+functionality, or user experience — only change the technical structure.
+
+---
+
+## WHAT NEEDS TO CHANGE
+
+Currently the app makes Anthropic API calls from the backend using Replit's
+environment variables. On Vercel, backend logic is handled through serverless
+functions in an `/api` folder.
+
+Please do the following:
+
+### 1. Create a Vercel serverless function for the Anthropic API
+
+Create a new file at: `api/generate.js`
+
+```javascript
+export default async function handler(req, res) {
+  // Allow CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(req.body)
+    });
+
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'API call failed' });
+  }
+}
+```
+
+### 2. Update all Anthropic API calls in the frontend
+
+Find every place in the frontend code that calls:
+`https://api.anthropic.com/v1/messages`
+
+Replace each one with a call to the local proxy instead:
+`/api/generate`
+
+The request body and response handling stay exactly the same —
+only the URL changes.
+
+### 3. Create a vercel.json configuration file
+
+Create `vercel.json` in the root of the project:
+
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}
+```
+
+### 4. Push all changes to GitHub
+
+After making these changes, commit and push everything to the GitHub
+repository so Vercel can deploy from the latest code.
+
+Commit message: "Restructure for Vercel deployment"
+
+---
+
+## IMPORTANT
+
+- Do not change any visual design or user-facing functionality
+- Do not expose the API key anywhere in frontend code
+- The API key will be added to Vercel as an environment variable separately
+- Make sure the app still works on Replit after these changes

@@ -1,9 +1,5 @@
 {
-  "framework": null,
-  "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @workspace/i-see-the-light build",
   "outputDirectory": "artifacts/i-see-the-light/dist/public",
-  "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ]
+  "buildCommand": "pnpm -w run typecheck:libs && pnpm --filter @workspace/i-see-the-light build",
+  "installCommand": "pnpm install"
 }
